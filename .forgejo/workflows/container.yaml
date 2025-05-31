@@ -56,7 +56,7 @@ jobs:
           containerfiles: |
             ./Containerfile
           build-args: |
-            DEBIAN_RELEASE=${{ matrix.container.release }}
+            ALPINE_RELEASE=${{ matrix.container.release }}
 
       - name: Push Container when on main branch
         id: push-container
