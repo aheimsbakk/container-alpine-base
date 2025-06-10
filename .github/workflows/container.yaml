@@ -21,15 +21,15 @@ jobs:
           - build-args: |
               ALPINE_RELEASE=3.22
             tags: |
-              ghcr.io/${{ github.repository }}:3.22
-              ghcr.io/${{ github.repository }}:3
-              ghcr.io/${{ github.repository }}:latest
+              ghcr.io/${{ github.repository_owner }}/alpine-base:3.22
+              ghcr.io/${{ github.repository_owner }}/alpine-base:3
+              ghcr.io/${{ github.repository_owner }}/alpine-base:latest
             platforms: linux/amd64,linux/arm64
             containerfile: Containerfile
           - build-args: |
               ALPINE_RELEASE=edge
             tags: |
-              ghcr.io/${{ github.repository }}:edge
+              ghcr.io/${{ github.repository_owner }}alpine-base:edge
             platforms: linux/amd64,linux/arm64
             containerfile: Containerfile
 
