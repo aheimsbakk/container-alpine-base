@@ -41,7 +41,7 @@ jobs:
           sleep 5
 
   build-container:
-    runs-on: ${{ vars.RUNS_ON }}
+    runs-on: "${{ vars.RUNS_ON }}"
     needs: set-vars
     permissions:
       packages: write
