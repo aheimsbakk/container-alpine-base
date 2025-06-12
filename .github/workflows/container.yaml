@@ -39,6 +39,8 @@ jobs:
           echo "container-name=${CONTAINER_NAME}" >> "$GITHUB_OUTPUT"
           echo "Set container-name to: ${CONTAINER_NAME}"
 
+          echo  "Runs on: ${vars.RUNS_ON}"
+
   build-container:
     runs-on: ${{ vars.RUNS_ON }}
     needs: set-vars
