@@ -31,15 +31,13 @@ jobs:
           fi
           echo "registry-name=${REGISTRY_NAME}" >> "$GITHUB_OUTPUT"
           echo "Set registry-name to: ${REGISTRY_NAME}"
-
           CONTAINER_NAME=${{ github.repository }}
           REPO_OWNER=${{ github.repository_owner }}
           CONTAINER_NAME=$(echo ${CONTAINER_NAME} | sed "s#${REPO_OWNER}/##g")
           CONTAINER_NAME=$(echo ${CONTAINER_NAME} | sed "s#container-##g")
           echo "container-name=${CONTAINER_NAME}" >> "$GITHUB_OUTPUT"
           echo "Set container-name to: ${CONTAINER_NAME}"
-
-          echo  "Runs on: ${vars.RUNS_ON}"
+          echo  "Runs on: ${{ vars.RUNS_ON }}"
 
   build-container:
     runs-on: ${{ vars.RUNS_ON }}
