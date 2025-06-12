@@ -1,10 +1,6 @@
 # Alpine Base Images
 
-Multiple releases of Alpine. See `matrix` in [`.forgejo/workflows/container.yaml`](.forgejo/workflows/container.yaml) for full list. 
-
-## This is a Mirror
-
-Orinates from Docker Hub.
+Multiple releases of Alpine. See `matrix` in [`.github/workflows/container.yaml`](.github/workflows/container.yaml) for full list. 
 
 ## Containerfile
 

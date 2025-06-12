@@ -1,3 +1,3 @@
-ARG ALPINE_RELEASE="latest"
+ARG RELEASE="latest"
 
-FROM docker.io/alpine:${ALPINE_RELEASE}
+FROM docker.io/alpine:${RELEASE}

@@ -10,42 +10,75 @@ on:
   schedule:
   - cron: '0 23 * * *'
 
+env:
+  CONTAINER_KEEP_COUNT: 10
+
 jobs:
+  set-vars:
+    runs-on: ${{ vars.RUNS_ON }}
+    outputs:
+      container-name: ${{ steps.set_output.outputs.container-name }}
+      registry-name: ${{ steps.set_output.outputs.registry-name }}
+    steps:
+      - name: Set output variable
+        id: set_output
+        run: |
+          REGISTRY_NAME="${{ github.server_url }}"
+          REGISTRY_NAME=$(echo ${REGISTRY_NAME} | sed "s#https://##g")
+          if [[ "${REGISTRY_NAME}" == "github.com" ]]
+          then
+            REGISTRY_NAME="ghcr.io"
+          fi
+          echo "registry-name=${REGISTRY_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Set registry-name to: ${REGISTRY_NAME}"
+
+          CONTAINER_NAME=${{ github.repository }}
+          REPO_OWNER=${{ github.repository_owner }}
+          CONTAINER_NAME=$(echo ${CONTAINER_NAME} | sed "s#${REPO_OWNER}/##g")
+          CONTAINER_NAME=$(echo ${CONTAINER_NAME} | sed "s#container-##g")
+          echo "container-name=${CONTAINER_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Set container-name to: ${CONTAINER_NAME}"
+
   build-container:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNS_ON }}
+    needs: set-vars
     permissions:
       packages: write
     strategy:
       matrix:
         container:
           - build-args: |
-              ALPINE_RELEASE=3.22
+              RELEASE=3.22
             tags: |
-              ghcr.io/${{ github.repository_owner }}/alpine-base:3.22
-              ghcr.io/${{ github.repository_owner }}/alpine-base:3
-              ghcr.io/${{ github.repository_owner }}/alpine-base:latest
+              ${{ needs.set-vars.outputs.registry-name }}/${{ github.repository_owner }}/${{ needs.set-vars.outputs.container-name }}:latest
+              ${{ needs.set-vars.outputs.registry-name }}/${{ github.repository_owner }}/${{ needs.set-vars.outputs.container-name }}:3.22
+              ${{ needs.set-vars.outputs.registry-name }}/${{ github.repository_owner }}/${{ needs.set-vars.outputs.container-name }}:3
             platforms: linux/amd64,linux/arm64
             containerfile: Containerfile
           - build-args: |
-              ALPINE_RELEASE=edge
+              RELEASE=edge
             tags: |
-              ghcr.io/${{ github.repository_owner }}/alpine-base:edge
+              ${{ needs.set-vars.outputs.registry-name }}/${{ github.repository_owner }}/${{ needs.set-vars.outputs.container-name }}:edge
             platforms: linux/amd64,linux/arm64
             containerfile: Containerfile
-
-    env:
-      STORAGE_DRIVER: vfs
-      BUILDAH_FORMAT: docker
-      BUILDAH_ISOLATION: chroot
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Login to Docker Hub
+      - name: Login to non Github registry
+        if: ${{ ! contains(github.api_url, 'github' ) }}
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ needs.set-vars.outputs.registry-name }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASS }}
+
+      - name: Login to Github registry
+        if: ${{ contains(github.api_url, 'github' ) }}
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ needs.set-vars.outputs.registry-name }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -66,10 +99,10 @@ jobs:
           build-args: ${{ matrix.container.build-args }}
 
       - name: Clean up old versions
-        if: github.ref == 'refs/heads/main' || github.event_name == 'schedule' 
+        if: ${{ contains(github.api_url, 'github') && ( github.ref == 'refs/heads/main' || github.event_name == 'schedule' ) }} 
         uses: actions/delete-package-versions@v5
         with:
           package-type: container
-          package-name: alpine-base
-          min-versions-to-keep: 10
+          package-name: ${{ needs.set-vars.outputs.container-name }}
+          min-versions-to-keep: ${{ env.CONTAINER_KEEP_COUNT }}
           delete-only-untagged-versions: true
