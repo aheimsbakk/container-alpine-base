@@ -43,7 +43,6 @@ jobs:
   build-container:
     runs-on: "${{ vars.RUNS_ON }}"
     needs: set-vars
-    id: build-container
     permissions:
       packages: write
     strategy:
